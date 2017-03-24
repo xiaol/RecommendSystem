@@ -89,9 +89,9 @@ public class DataBaseDao {
         String tablename1  = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
         String sql = "select * from (select uid,nid,probability,1 from  (\n" +
-                "SELECT ROW_NUMBER() OVER (partition by u.topic_id,u.ch_name ORDER BY u.probability*t.probability DESC) AS rownum,\n" +
-                "u.uid,n.nid,u.probability*t.probability as probability from  usertopics u inner join news_topic t \n" +
-                "on u.topic_id=t.topic_id and u.ch_name=t.ch_name and u.model_v = t.model_v \n" +
+                "SELECT ROW_NUMBER() OVER (partition by u.topic_id ORDER BY u.probability*t.probability DESC) AS rownum,\n" +
+                "u.uid,n.nid,u.probability*t.probability as probability from  user_topics_v2 u inner join news_topic_v2 t \n" +
+                "on u.topic_id=t.topic_id and u.model_v = t.model_v \n" +
                 "inner join newslist_v2 n on  t.nid = n.nid where  u.uid= " + uid + " and n.ctime >(now() - interval '1 day')  \n" +
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
@@ -305,7 +305,7 @@ public class DataBaseDao {
 
     public static void main(String[] args) {
         Connection conn = ConnectionPool3.getConnection();
-        insertPvUvDate(conn);
-//        queryRecommend("6440748", conn);
+//        insertPvUvDate(conn);
+        queryRecommend(6440748L, conn);
     }
 }
