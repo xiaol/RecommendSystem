@@ -65,19 +65,29 @@ public class ApplicationTimer {
         Timer timer2 = new Timer();
         Timer timer3 = new Timer();
         Timer timer4 = new Timer();
+
         Timer timer5 = new Timer();
+        Timer timer6 = new Timer();
+        Timer timer7 = new Timer();
+        Timer timer8 = new Timer();
+        Timer timer9 = new Timer();
 
         //每天统计一次pv/uv
         timer1.scheduleAtFixedRate(new PvUvDateCount(), startTime, daySpan);
-//        timer1.schedule(new PvUvDateCount(), minute*2, minute*60*24);
-        //每5分钟处理一次待推荐的通知
-        timer2.schedule(new RecommendData(), minute*1, minute*5);
         //每5分钟获取一次百度热词新闻
-        timer3.schedule(new GetHotNews(), minute*1, minute*10);
+        timer2.schedule(new GetHotNews(), minute*1, minute*10);
         //每天统计一次点击量
-        timer4.scheduleAtFixedRate(new NewsClickCount(), startTime, daySpan);
+        timer3.scheduleAtFixedRate(new NewsClickCount(), startTime, daySpan);
         //每小时更新公共新闻池
-        timer5.schedule(new UpdateNewsFeedCommonPerHour(), minute*1, minute*60);
+        timer4.schedule(new UpdateNewsFeedCommonPerHour(), minute*1, minute*60);
+
+        //每5分钟处理一次待推荐的通知
+        timer5.schedule(new RecommendData(0, 5), 1000, minute*5);
+        timer6.schedule(new RecommendData(1, 5), minute*1, minute*5);
+        timer7.schedule(new RecommendData(2, 5), minute*2, minute*5);
+        timer8.schedule(new RecommendData(3, 5), minute*3, minute*5);
+        timer9.schedule(new RecommendData(4, 5), minute*4, minute*5);
+
 
         // When the application starts, register a stop hook with the
         // ApplicationLifecycle object. The code inside the stop hook will

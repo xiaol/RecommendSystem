@@ -19,10 +19,18 @@ public class RecommendData extends TimerTask {
 
     static AtomicInteger atomic = new AtomicInteger(0);
 
+    private int number;//第几个任务
+    private int hash = 1;//总任务数
+
+    public RecommendData(int number, int hash){
+        this.number = number;
+        this.hash = hash;
+    }
+
     @Override
     public void run(){
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(50, 50, 200, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(1000000));
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(20, 20, 200, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(10000));
         executor.prestartAllCoreThreads();
         Logger.info("开始推荐数据-->"+new java.util.Date());
         Connection connection = ConnectionPool3.getConnection();
@@ -31,25 +39,27 @@ public class RecommendData extends TimerTask {
         Map map = new HashMap<Long, List<Newsrecommendforuser>>();
         for(int i=0; i<uids.size(); i++){
             Long uid =  uids.get(i);
-            final int finalI = i;
-            executor.execute(new Runnable() {
-                public void run() {
-                    try{
-                        Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
-                                executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
-                        Connection conn = ConnectionPool3.getConnection();
-                        List<Newsrecommendforuser> list = DataBaseDao.queryRecommend(uid, conn);
-                        map.put(uid, list);
-                        if(list.size()>0){
-                            atomic.addAndGet(1);
-                            System.out.println("uid:  "+uid+",  list:  "+list.size());
+            if(uid%hash == number){
+                final int finalI = i;
+                executor.execute(new Runnable() {
+                    public void run() {
+                        try{
+                            Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
+                                    executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
+                            Connection conn = ConnectionPool3.getConnection();
+                            List<Newsrecommendforuser> list = DataBaseDao.queryRecommend(uid, conn);
+                            map.put(uid, list);
+                            if(list.size()>0){
+                                atomic.addAndGet(1);
+//                                System.out.println("uid:  "+uid+",  list:  "+list.size());
+                            }
+                            ConnectionPool3.closeConnection(conn);
+                        }catch (Exception e){
+                            e.printStackTrace();
                         }
-                        ConnectionPool3.closeConnection(conn);
-                    }catch (Exception e){
-                        e.printStackTrace();
                     }
-                }
-            });
+                });
+            }
 
         }
 
@@ -80,17 +90,17 @@ public class RecommendData extends TimerTask {
     }
 
     public static void main(String[] args) {
-//        Timer timer = new Timer();
-//        timer.schedule(new RecommendData(), 1000*1, 1000*60*50);
+        Timer timer = new Timer();
+        timer.schedule(new RecommendData(0, 5), 1000*1, 1000*60*50);
 
 //        RecommendData r = new RecommendData();
 //        r.run();
-        Connection conn = ConnectionPool3.getConnection();
-        List<Newsrecommendforuser> list = DataBaseDao.queryRecommend(6440748L, conn);
-        for (int i = 0; i < list.size(); i++) {
-            Newsrecommendforuser news = list.get(i);
-            System.out.println(news.getNid());
-        }
+//        Connection conn = ConnectionPool3.getConnection();
+//        List<Newsrecommendforuser> list = DataBaseDao.queryRecommend(6440748L, conn);
+//        for (int i = 0; i < list.size(); i++) {
+//            Newsrecommendforuser news = list.get(i);
+//            System.out.println(news.getNid());
+//        }
     }
 
 }
