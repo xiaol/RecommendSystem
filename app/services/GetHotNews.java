@@ -47,7 +47,7 @@ public class GetHotNews extends TimerTask {
                     try {
                         String hotword = h.getResult().get(i).getBaiduHotWord().get(0);
                         System.out.println(hotword);
-                        HttpGet httpgetnid = new HttpGet(ConfigConstants.searchurl+hotword.replaceAll("\"","").replaceAll("\'",""));
+                        HttpGet httpgetnid = new HttpGet(ConfigConstants.searchurl + java.net.URLEncoder.encode(hotword));
                         HttpClient httpclient2 = new DefaultHttpClient();
                         HttpResponse response2 = httpclient2.execute(httpgetnid);
                         HttpEntity entity2 = response2.getEntity();
@@ -58,7 +58,7 @@ public class GetHotNews extends TimerTask {
                         httpgetnid.abort();
                     } catch (ClientProtocolException e) {
                         //e.printStackTrace();
-                    }catch (IOException e) {
+                    }catch (Exception e) {
                         //e.printStackTrace();
                     }
                 }
