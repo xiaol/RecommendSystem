@@ -38,8 +38,8 @@ public class ConnectionPool {
 
         HikariConfig config = new HikariConfig();
         config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-//        config.addDataSourceProperty("serverName", "10.47.54.175");
-        config.addDataSourceProperty("serverName", "120.27.163.25");
+        config.addDataSourceProperty("serverName", "10.47.54.175");
+//        config.addDataSourceProperty("serverName", "120.27.163.25");
         config.addDataSourceProperty("portNumber", "5432");
         config.addDataSourceProperty("databaseName", "BDP");
         config.addDataSourceProperty("user", "postgres");
