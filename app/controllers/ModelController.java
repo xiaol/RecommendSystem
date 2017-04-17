@@ -18,7 +18,6 @@ public class ModelController extends Controller {
     public Result index(String uid, String data) {
 //        Map<String, double[]> map = ModelInject.getInstance().getModelMap();
         String nids = "";
-        //this is a test
 //        if(map.containsKey(uid)){
 //            LogisticRegressionModel model = map.get("1");
 //            double[] d = new double[]{1.0, 1.0};
