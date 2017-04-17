@@ -47,9 +47,10 @@ public class RecommendData extends TimerTask {
                             Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
                                     executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
                             Connection conn = ConnectionPool3.getConnection();
-                            List<Newsrecommendforuser> list = DataBaseDao.queryRecommend(uid, conn);
-                            map.put(uid, list);
-                            if(list.size()>0){
+                            List<Newsrecommendforuser> listLDA = DataBaseDao.queryRecommendLDA(uid, conn);
+                            List<Newsrecommendforuser> listKmeans = DataBaseDao.queryRecommendKmeans(uid, conn);
+                            map.put(uid, listLDA.addAll(listKmeans));
+                            if(listLDA.size()>0){
                                 atomic.addAndGet(1);
 //                                System.out.println("uid:  "+uid+",  list:  "+list.size());
                             }

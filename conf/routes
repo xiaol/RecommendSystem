@@ -13,4 +13,4 @@ GET     /message                    controllers.AsyncController.message
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 #上传热点新闻(爬虫端)
-POST   /v1/hot/news                 controllers.HotNewsController.processHotNews
+POST   /v1/news/hot                 controllers.HotNewsController.processHotNews

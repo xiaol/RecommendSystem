@@ -84,11 +84,11 @@ public class DataBaseDao {
         return list;
     }
 
-    public static List<Newsrecommendforuser> queryRecommend(Long uid, Connection conn) {
+    public static List<Newsrecommendforuser> queryRecommendLDA(Long uid, Connection conn) {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1  = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
-        String sql = "select * from (select uid,nid,probability,1 from  (\n" +
+        String sql = "select uid,nid,probability,1 from  (\n" +
                 "SELECT ROW_NUMBER() OVER (partition by u.topic_id ORDER BY u.probability*t.probability DESC) AS rownum,\n" +
                 "u.uid,n.nid,u.probability*t.probability as probability from  user_topics_v2 u inner join news_topic_v2 t \n" +
                 "on u.topic_id=t.topic_id and u.model_v = t.model_v \n" +
@@ -96,9 +96,48 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
                 ") as te \n" +
-                "where te.rownum <3 ORDER BY probability DESC LIMIT 10) t1 \n" +
-                "union all\n" +
-                "select * from (select uid,nid,times,2 from  (\n" +
+                "where te.rownum <3 ORDER BY probability DESC LIMIT 10 ";
+
+//        System.out.println(sql);
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        List<Newsrecommendforuser> list = new ArrayList<>();
+        try {
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Newsrecommendforuser nu = new Newsrecommendforuser();
+                nu.setUid(rs.getInt(1));
+                nu.setNid(rs.getInt(2));
+                nu.setPredict(rs.getDouble(3));
+                nu.setSourcetype(rs.getInt(4));
+//                System.out.println(nu.toString());
+                list.add(nu);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            if(pstmt != null){   // 关闭声明
+                try{
+                    rs.close();
+                }catch(SQLException e){
+                    e.printStackTrace() ;
+                }
+                try{
+                    pstmt.close() ;
+                }catch(SQLException e){
+                    e.printStackTrace() ;
+                }
+            }
+        }
+        return list;
+    }
+
+    public static List<Newsrecommendforuser> queryRecommendKmeans(Long uid, Connection conn) {
+        //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
+        String tablename1  = "newsrecommendread_" + uid % 100;
+        String tablename2 = "newsrecommendforuser_" + uid % 10;
+        String sql = "select uid,nid,times,2 from  (\n" +
                 "SELECT ROW_NUMBER() OVER (partition by u.chid,u.cluster_id ORDER BY times DESC) AS rownum,\n" +
                 "u.uid,n.nid,n.title, u.times,u.cluster_id, u.chid from  user_kmeans_cluster u inner join news_kmeans t \n" +
                 "on u.cluster_id=t.cluster_id and u.chid=t.chid and u.model_v = t.model_v \n" +
@@ -106,7 +145,7 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
                 ") as te \n" +
-                "where te.rownum <3 ORDER BY times DESC LIMIT 10) t2 ";
+                "where te.rownum <3 ORDER BY times DESC LIMIT 10";
 
 //        System.out.println(sql);
         PreparedStatement pstmt = null;
@@ -306,6 +345,6 @@ public class DataBaseDao {
     public static void main(String[] args) {
         Connection conn = ConnectionPool3.getConnection();
 //        insertPvUvDate(conn);
-        queryRecommend(6440748L, conn);
+        queryRecommendLDA(6440748L, conn);
     }
 }
