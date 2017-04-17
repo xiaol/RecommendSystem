@@ -4,8 +4,6 @@ package util;
  * Created by zhangshl on 17/1/17.
  */
 
-import com.jolbox.bonecp.BoneCP;
-import com.jolbox.bonecp.BoneCPConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
