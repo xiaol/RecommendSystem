@@ -44,7 +44,7 @@ public class HotNewsController extends Controller {
             try {
                 String hotword = news[i];
                 System.out.println(hotword);
-                HttpGet httpgetnid = new HttpGet(ConfigConstants.searchurl+hotword.replaceAll("\"","").replaceAll("\'",""));
+                HttpGet httpgetnid = new HttpGet(ConfigConstants.searchurl+java.net.URLEncoder.encode(hotword,"utf-8"));
                 HttpClient httpclient2 = HttpClientBuilder.create().build();
                 HttpResponse response2 = httpclient2.execute(httpgetnid);
                 String json = EntityUtils.toString(response2.getEntity(),"utf-8");
