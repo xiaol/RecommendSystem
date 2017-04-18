@@ -7,9 +7,10 @@ import util.ConnectionPool;
 import util.ConnectionPool3;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,10 +48,9 @@ public class RecommendData extends TimerTask {
                             Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
                                     executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
                             Connection conn = ConnectionPool3.getConnection();
-                            List<Newsrecommendforuser> listLDA = DataBaseDao.queryRecommendLDA(uid, conn);
-                            List<Newsrecommendforuser> listKmeans = DataBaseDao.queryRecommendKmeans(uid, conn);
-                            map.put(uid, listLDA.addAll(listKmeans));
-                            if(listLDA.size()>0){
+                            List<Newsrecommendforuser> listRec = DataBaseDao.queryRecommend(uid, conn);
+                            map.put(uid, listRec);
+                            if(listRec.size()>0){
                                 atomic.addAndGet(1);
 //                                System.out.println("uid:  "+uid+",  list:  "+list.size());
                             }
