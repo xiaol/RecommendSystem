@@ -8,6 +8,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by zhangshl on 16/9/18.
@@ -91,9 +92,38 @@ public class DataBaseDao {
      * @return
      */
     public static List<Newsrecommendforuser> queryRecommend(Long uid,Connection conn){
-        List<Newsrecommendforuser> listLDA = DataBaseDao.queryRecommendLDA(uid, conn);
-        List<Newsrecommendforuser> listKmeans = DataBaseDao.queryRecommendKmeans(uid, conn);
-        List<Newsrecommendforuser> listCF = DataBaseDao.queryRecommendCF(uid, conn);
+        CountDownLatch latch = new CountDownLatch(3);
+        List<Newsrecommendforuser> listLDA = new ArrayList<>();
+        List<Newsrecommendforuser> listKmeans = new ArrayList<>();
+        List<Newsrecommendforuser> listCF = new ArrayList<>();
+        new Thread(){
+            @Override
+            public void run() {
+                 listLDA.addAll(DataBaseDao.queryRecommendLDA(uid, conn));
+                latch.countDown();
+            }
+        }.start();
+        new Thread(){
+            @Override
+            public void run() {
+                listKmeans.addAll(DataBaseDao.queryRecommendKmeans(uid, conn));
+                latch.countDown();
+            }
+        }.start();
+        new Thread(){
+            @Override
+            public void run() {
+                listCF.addAll(DataBaseDao.queryRecommendCF(uid, conn));
+                latch.countDown();
+            }
+        }.start();
+        new Thread(){}.start();
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         listLDA.addAll(listKmeans);
         listLDA.addAll(listCF);
         return listLDA;
@@ -114,7 +144,7 @@ public class DataBaseDao {
                 ") as te \n" +
                 "where te.rownum <3 ORDER BY probability DESC LIMIT 10 ";
 
-        System.out.println(sql);
+//        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
@@ -133,7 +163,7 @@ public class DataBaseDao {
                 ") as te \n" +
                 "where te.rownum <3 ORDER BY times DESC LIMIT 10";
 
-        System.out.println(sql);
+//        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
@@ -151,7 +181,7 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  " +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day'))  ORDER BY u.ctime desc, probability DESC LIMIT 10";
 
-        System.out.println(sql);
+//        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
