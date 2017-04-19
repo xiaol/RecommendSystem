@@ -87,37 +87,39 @@ public class DataBaseDao {
 
     /**
      * 根据算法查询推荐给用户的新闻
+     *
      * @param uid
      * @param conn
      * @return
      */
-    public static List<Newsrecommendforuser> queryRecommend(Long uid,Connection conn){
+    public static List<Newsrecommendforuser> queryRecommend(Long uid, Connection conn) {
         CountDownLatch latch = new CountDownLatch(3);
         List<Newsrecommendforuser> listLDA = new ArrayList<>();
         List<Newsrecommendforuser> listKmeans = new ArrayList<>();
         List<Newsrecommendforuser> listCF = new ArrayList<>();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
-                 listLDA.addAll(DataBaseDao.queryRecommendLDA(uid, conn));
+                listLDA.addAll(DataBaseDao.queryRecommendLDA(uid, conn));
                 latch.countDown();
             }
         }.start();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 listKmeans.addAll(DataBaseDao.queryRecommendKmeans(uid, conn));
                 latch.countDown();
             }
         }.start();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 listCF.addAll(DataBaseDao.queryRecommendCF(uid, conn));
                 latch.countDown();
             }
         }.start();
-        new Thread(){}.start();
+        new Thread() {
+        }.start();
 
         try {
             latch.await();
@@ -129,6 +131,7 @@ public class DataBaseDao {
         return listLDA;
 
     }
+
     public static List<Newsrecommendforuser> queryRecommendLDA(Long uid, Connection conn) {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1 = "newsrecommendread_" + uid % 100;
@@ -171,15 +174,17 @@ public class DataBaseDao {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1 = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
-        String sql = "select \n" +
-                "u.uid,n.nid,u.property * t.probability * log(n.comment + 2) as probability,3 as sourcetype\n" +
-                "from user_topic_cf u \n" +
-                "inner join news_topic_v2 t\n" +
-                "on u.topic_id = t.topic_id and u.model_v = t.model_v\n" +
-                "inner join newslist_v2 n on t.nid = n.nid where u.uid = " + uid + " and n.ctime > (now() - interval '1 day')" +
+        String sql = "select uid,nid,probability as probability,3 as sourcetype\n" +
+                "from (SELECT ROW_NUMBER() OVER (partition by u.topic_id ORDER BY u.property * t.probability * log(n.comment + 2) DESC) AS rownum,\n" +
+                "u.uid,n.nid,u.property*t.probability*log(n.comment + 2) as probability from  user_topic_cf u inner join news_topic_v2 t \n" +
+                "on u.topic_id=t.topic_id and u.model_v = t.model_v \n" +
+                "inner join newslist_v2 n on t.nid = n.nid where u.uid = " + uid + " \n" +
+                "and n.ctime > (now() - interval '1 day')\n" +
                 "and t.ctime > (now() - interval '6 hour')\n" +
-                "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  " +
-                "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day'))  ORDER BY u.ctime desc, probability DESC LIMIT 10";
+                "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day')) \n" +
+                "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
+                ") as te\n" +
+                "where te.rownum <3 ORDER BY probability DESC LIMIT 10 ";
 
 //        System.out.println(sql);
         return fetchData(conn, sql);
@@ -187,6 +192,7 @@ public class DataBaseDao {
 
     /**
      * 根据sql 从数据中获取数据
+     *
      * @param conn
      * @param sql
      * @return
@@ -389,6 +395,6 @@ public class DataBaseDao {
     public static void main(String[] args) {
         Connection conn = ConnectionPool3.getConnection();
 //        insertPvUvDate(conn);
-        queryRecommend(6440748L,conn);
+        queryRecommend(6440748L, conn);
     }
 }

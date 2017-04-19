@@ -9,6 +9,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -30,12 +31,12 @@ public class HotNewsController extends Controller {
 
     public Result processHotNews() {
         String requestRType = request().getHeader(Http.HeaderNames.CONTENT_TYPE);
-        if (requestRType != null && !requestRType.contains(Http.MimeTypes.FORM)){
-            return ok("{'code':'4015','message':'Request Header ContentType Not Supported'}");
+        if (requestRType == null || requestRType != null && !requestRType.contains(Http.MimeTypes.FORM)){
+            return ok(statusCodeJson(4015,"Request Header ContentType Not Supported"));
         }
         String[] news = request().body().asFormUrlEncoded().get("news");
-        if (news == null || news.length == 0){
-            return ok("{'code':'4002','message':'InvalidArgument'}");
+        if (!verifyParams(news)){
+            return ok(statusCodeJson(4002,"InvalidArgument"));
         }
         ObjectMapper mapper = new ObjectMapper();
         //全部放list里,查询哪些已经插入数据库,得到一个交集list,过滤此list select from T where nid not in (list)
@@ -49,7 +50,8 @@ public class HotNewsController extends Controller {
                 HttpResponse response2 = httpclient2.execute(httpgetnid);
                 String json = EntityUtils.toString(response2.getEntity(),"utf-8");
                 Map<String, Integer> maps = mapper.readValue(json, Map.class);
-                nids.add(maps.get("data"));
+                if ("2000".equals(maps.get("code")))
+                    nids.add(maps.get("data"));
                 httpgetnid.abort();
                 if(nids.size()>0){
                     Connection conn = ConnectionPool.getConnection();
@@ -62,6 +64,20 @@ public class HotNewsController extends Controller {
                 //e.printStackTrace();
             }
         }
-        return ok("{'code':2000,'mesage':'Upload Hot News Success'}");
+        return ok(statusCodeJson(2000,"Upload Hot News Success"));
+    }
+
+    public static String statusCodeJson(int code,String message){
+        return Json.newObject().put("code",code).put("message",message).toString();
+    }
+
+    public boolean verifyParams(String[] news){
+        if (news == null || news.length == 0) return false;
+        for (String n:news){
+            if (n == null || "".equals(n.trim())){
+                return false;
+            }
+        }
+        return true;
     }
 }
