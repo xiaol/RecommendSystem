@@ -27,7 +27,7 @@ public class ConnectionPool3 {
         config.addDataSourceProperty("databaseName", "BDP");
         config.addDataSourceProperty("user", "postgres");
         config.addDataSourceProperty("password", "ly@postgres&2015");
-        config.setMaximumPoolSize(60);
+        config.setMaximumPoolSize(100);
 
         connectionPool = new HikariDataSource(config);
     }

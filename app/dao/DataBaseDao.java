@@ -1,6 +1,7 @@
 package dao;
 
 import beans.Newsrecommendforuser;
+import util.ConfigConstants;
 import util.ConnectionPool3;
 import util.StringUtilsm;
 
@@ -145,9 +146,9 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
                 ") as te \n" +
-                "where te.rownum <3 ORDER BY probability DESC LIMIT 10 ";
+                "where te.rownum <3 ORDER BY probability DESC LIMIT "+ ConfigConstants.number_system;
 
-//        System.out.println(sql);
+        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
@@ -164,9 +165,9 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day'))  \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
                 ") as te \n" +
-                "where te.rownum <3 ORDER BY times DESC LIMIT 10";
+                "where te.rownum <3 ORDER BY times DESC LIMIT "+ ConfigConstants.number_system;
 
-//        System.out.println(sql);
+        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
@@ -184,9 +185,9 @@ public class DataBaseDao {
                 "and not exists(select 1 from " + tablename1 + " r  where n.nid=r.nid and  uid=" + uid + " and readtime > (now() - interval '1 day')) \n" +
                 "and not exists(select 1 from " + tablename2 + " r  where n.nid=r.nid and  uid=" + uid + " and ctime> (now() - interval '1 day')) \n" +
                 ") as te\n" +
-                "where te.rownum <3 ORDER BY probability DESC LIMIT 10 ";
+                "where te.rownum <3 ORDER BY probability DESC LIMIT "+ ConfigConstants.number_system;
 
-//        System.out.println(sql);
+        System.out.println(sql);
         return fetchData(conn, sql);
     }
 
