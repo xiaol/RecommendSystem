@@ -31,9 +31,9 @@ public class RecommendData extends TimerTask {
     @Override
     public void run(){
         ThreadPoolExecutor executor = new ThreadPoolExecutor(20, 20, 200, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(10000));
+                new LinkedBlockingQueue<Runnable>(1000));
         executor.prestartAllCoreThreads();
-        Logger.info("开始推荐数据-->"+new java.util.Date());
+//        Logger.info("开始推荐数据-->"+new java.util.Date());
         Connection connection = ConnectionPool3.getConnection();
         List<Long> uids = DataBaseDao.queryuids(connection);
         ConnectionPool3.closeConnection(connection);
@@ -45,29 +45,28 @@ public class RecommendData extends TimerTask {
                 executor.execute(new Runnable() {
                     public void run() {
                         try{
-                            Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
-                                    executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
-                            Connection conn = ConnectionPool3.getConnection();
-                            List<Newsrecommendforuser> listRec = DataBaseDao.queryRecommend(uid, conn);
+//                            Logger.info(finalI+"----"+"线程池中线程数目："+executor.getPoolSize()+"，队列中等待执行的任务数目："+
+//                                    executor.getQueue().size()+"，已执行完的任务数目："+executor.getCompletedTaskCount());
+
+                            List<Newsrecommendforuser> listRec = DataBaseDao.queryRecommend(uid);
                             map.put(uid, listRec);
                             if(listRec.size()>0){
                                 atomic.addAndGet(1);
 //                                System.out.println("uid:  "+uid+",  list:  "+list.size());
                             }
-                            ConnectionPool3.closeConnection(conn);
+
                         }catch (Exception e){
                             e.printStackTrace();
                         }
                     }
                 });
             }
-
         }
 
         executor.shutdown();
         while(true){
             if(executor.isTerminated()){
-                System.out.println("有数据的用户: "+ atomic.get());
+//                System.out.println("有数据的用户: "+ atomic.get());
 
                 Connection conn = ConnectionPool.getConnection();
                 Iterator iterator = map.keySet().iterator();
@@ -78,7 +77,7 @@ public class RecommendData extends TimerTask {
                 }
 
                 ConnectionPool.closeConnection(conn);
-                Logger.info("结束推荐数据-->"+new java.util.Date());
+//                Logger.info("结束推荐数据-->"+new java.util.Date());
                 break;
             }
             try {

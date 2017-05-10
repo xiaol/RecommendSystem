@@ -35,7 +35,7 @@ public class ConfigConstants {
     //从人工推荐条数
     public static final int number_person = 20;
     //从系统推荐条数
-    public static final int number_system = 20;
+    public static final int number_system = 8;
 
     //渠道类型, 1：奇点资讯， 2：黄历天气，3：纹字锁频，4：猎鹰浏览器，5：白牌
     public static final int qidianzixun = 1;

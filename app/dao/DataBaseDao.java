@@ -55,7 +55,7 @@ public class DataBaseDao {
     }
 
     public static List<Long> queryuids(Connection conn) {
-        String sql = "select distinct uid from pvdetail where uid!=0 and ctime > (now() - interval '5 MINUTE')";
+        String sql = "select distinct uid from pvdetail where uid!=0 and ctime > (now() - interval '30 SECOND')";
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         List<Long> list = new ArrayList<>();
@@ -90,10 +90,9 @@ public class DataBaseDao {
      * 根据算法查询推荐给用户的新闻
      *
      * @param uid
-     * @param conn
      * @return
      */
-    public static List<Newsrecommendforuser> queryRecommend(Long uid, Connection conn) {
+    public static List<Newsrecommendforuser> queryRecommend(Long uid) {
         CountDownLatch latch = new CountDownLatch(3);
         List<Newsrecommendforuser> listLDA = new ArrayList<>();
         List<Newsrecommendforuser> listKmeans = new ArrayList<>();
@@ -101,21 +100,21 @@ public class DataBaseDao {
         new Thread() {
             @Override
             public void run() {
-                listLDA.addAll(DataBaseDao.queryRecommendLDA(uid, conn));
+                listLDA.addAll(DataBaseDao.queryRecommendLDA(uid));
                 latch.countDown();
             }
         }.start();
         new Thread() {
             @Override
             public void run() {
-                listKmeans.addAll(DataBaseDao.queryRecommendKmeans(uid, conn));
+                listKmeans.addAll(DataBaseDao.queryRecommendKmeans(uid));
                 latch.countDown();
             }
         }.start();
         new Thread() {
             @Override
             public void run() {
-                listCF.addAll(DataBaseDao.queryRecommendCF(uid, conn));
+                listCF.addAll(DataBaseDao.queryRecommendCF(uid));
                 latch.countDown();
             }
         }.start();
@@ -133,7 +132,7 @@ public class DataBaseDao {
 
     }
 
-    public static List<Newsrecommendforuser> queryRecommendLDA(Long uid, Connection conn) {
+    public static List<Newsrecommendforuser> queryRecommendLDA(Long uid) {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1 = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
@@ -148,11 +147,11 @@ public class DataBaseDao {
                 ") as te \n" +
                 "where te.rownum <3 ORDER BY probability DESC LIMIT "+ ConfigConstants.number_system;
 
-        System.out.println(sql);
-        return fetchData(conn, sql);
+//        System.out.println(sql);
+        return fetchData(sql);
     }
 
-    public static List<Newsrecommendforuser> queryRecommendKmeans(Long uid, Connection conn) {
+    public static List<Newsrecommendforuser> queryRecommendKmeans(Long uid) {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1 = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
@@ -167,11 +166,11 @@ public class DataBaseDao {
                 ") as te \n" +
                 "where te.rownum <3 ORDER BY times DESC LIMIT "+ ConfigConstants.number_system;
 
-        System.out.println(sql);
-        return fetchData(conn, sql);
+//        System.out.println(sql);
+        return fetchData(sql);
     }
 
-    public static List<Newsrecommendforuser> queryRecommendCF(Long uid, Connection conn) {
+    public static List<Newsrecommendforuser> queryRecommendCF(Long uid) {
         //LDA取10条,每个主题最多两条, KMeans取10条,每个cluster最多2条
         String tablename1 = "newsrecommendread_" + uid % 100;
         String tablename2 = "newsrecommendforuser_" + uid % 10;
@@ -187,18 +186,18 @@ public class DataBaseDao {
                 ") as te\n" +
                 "where te.rownum <3 ORDER BY probability DESC LIMIT "+ ConfigConstants.number_system;
 
-        System.out.println(sql);
-        return fetchData(conn, sql);
+//        System.out.println(sql);
+        return fetchData(sql);
     }
 
     /**
      * 根据sql 从数据中获取数据
      *
-     * @param conn
      * @param sql
      * @return
      */
-    private static List<Newsrecommendforuser> fetchData(Connection conn, String sql) {
+    private static List<Newsrecommendforuser> fetchData(String sql) {
+        Connection conn = ConnectionPool3.getConnection();
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         List<Newsrecommendforuser> list = new ArrayList<>();
@@ -228,6 +227,12 @@ public class DataBaseDao {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
         return list;
@@ -396,6 +401,6 @@ public class DataBaseDao {
     public static void main(String[] args) {
         Connection conn = ConnectionPool3.getConnection();
 //        insertPvUvDate(conn);
-        queryRecommend(6440748L, conn);
+        queryRecommend(6440748L);
     }
 }

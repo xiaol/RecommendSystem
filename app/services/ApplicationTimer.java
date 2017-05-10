@@ -44,6 +44,7 @@ public class ApplicationTimer {
         start = clock.instant();
         Logger.info("ApplicationTimer demo: Starting application at " + start);
         int minute = 1000*60;
+        int second = 1000;
 
         // 一天的毫秒数
         long daySpan = 24 * 60 * 60 * 1000;
@@ -82,11 +83,11 @@ public class ApplicationTimer {
         timer4.schedule(new UpdateNewsFeedCommonPerHour(), minute*1, minute*60);
 
         //每5分钟处理一次待推荐的通知
-        timer5.schedule(new RecommendData(0, 5), 1000, minute*5);
-        timer6.schedule(new RecommendData(1, 5), minute*1, minute*5);
-        timer7.schedule(new RecommendData(2, 5), minute*2, minute*5);
-        timer8.schedule(new RecommendData(3, 5), minute*3, minute*5);
-        timer9.schedule(new RecommendData(4, 5), minute*4, minute*5);
+        timer5.schedule(new RecommendData(0, 5), second, second*30);
+        timer6.schedule(new RecommendData(1, 5), second*10, second*30);
+        timer7.schedule(new RecommendData(2, 5), second*15, second*30);
+        timer8.schedule(new RecommendData(3, 5), second*20, second*30);
+        timer9.schedule(new RecommendData(4, 5), second*25, second*30);
 
 
         // When the application starts, register a stop hook with the

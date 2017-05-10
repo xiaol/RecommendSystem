@@ -13,7 +13,7 @@ public class DeleteReadData {
     public static void main(String[] args) {
         Connection conn = ConnectionPool.getConnection();
         try {
-            for (int i=97; i<100; i++){
+            for (int i=77; i<100; i++){
                 Statement stmt = conn.createStatement();
                 String sql = "create table newsrecommendread_"+i+"_1 as select * from newsrecommendread_"+i+" where readtime>now()-interval'7 day'";
                 System.out.println(sql);
